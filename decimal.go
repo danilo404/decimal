@@ -20,13 +20,13 @@ import (
 	"database/sql/driver"
 	"encoding/binary"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"math"
 	"math/big"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 // DivisionPrecision is the number of decimal places in the result when it
@@ -1052,7 +1052,7 @@ func (d Decimal) MarshalBinary() (data []byte, err error) {
 // GetBSON implements the bson.Getter interface
 func (d Decimal) GetBSON() (interface{}, error) {
 	// Pass through string to create Mongo Decimal128 type
-	dec128, err := bson.ParseDecimal128(d.String())
+	dec128, err := primitive.ParseDecimal128(d.String())
 	if err != nil {
 		return nil, err
 	}
@@ -1060,9 +1060,9 @@ func (d Decimal) GetBSON() (interface{}, error) {
 }
 
 // SetBSON implements the bson.Setter interface
-func (d *Decimal) SetBSON(raw bson.Raw) error {
+func (d *Decimal) SetBSON(raw bson.RawValue) error {
 	// Unmarshal as Mongo Decimal128 first then pass through string to obtain Decimal
-	var dec128 bson.Decimal128
+	var dec128 primitive.Decimal128
 	berr := raw.Unmarshal(&dec128)
 	if berr != nil {
 		return berr

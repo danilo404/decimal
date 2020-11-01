@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/mgocompat"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"math"
 	"math/big"
 	"math/rand"
@@ -15,8 +18,6 @@ import (
 	"testing"
 	"testing/quick"
 	"time"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 type testEnt struct {
@@ -2673,12 +2674,12 @@ func TestBSON(t *testing.T) {
 
 		// Test structure marshalling first
 		s1 := decStruct{Dec: d}
-		data, err := bson.Marshal(s1)
+		data, err := bson.MarshalWithRegistry(mgocompat.Registry, s1)
 		if err != nil {
 			t.Errorf("TestBSON failed structure marshalling for case %v because of marshal error - %v", tests[i], err)
 		}
 		s2 := decStruct{}
-		err = bson.Unmarshal(data, &s2)
+		err = bson.UnmarshalWithRegistry(mgocompat.Registry, data, &s2)
 		if err != nil {
 			t.Errorf("TestBSON failed structure marshalling for case %v because of unmarshal error - %v", tests[i], err)
 		}
@@ -2689,16 +2690,16 @@ func TestBSON(t *testing.T) {
 
 		// Next test map marshalling
 		m := bson.M{"dec": d}
-		data2, err2 := bson.Marshal(m)
+		data2, err2 := bson.MarshalWithRegistry(mgocompat.Registry, m)
 		if err2 != nil {
 			t.Errorf("TestBSON failed map marshalling for case %v because of marshal error - %v", tests[i], err2)
 		}
 		m2 := make(bson.M)
-		err2 = bson.Unmarshal(data2, m2)
+		err2 = bson.UnmarshalWithRegistry(mgocompat.Registry, data2, m2)
 		if err2 != nil {
 			t.Errorf("TestBSON failed map marshalling for case %v because of unmarshal error - %v", tests[i], err2)
 		}
-		d2, errD2 := NewFromString(m2["dec"].(bson.Decimal128).String())
+		d2, errD2 := NewFromString(m2["dec"].(primitive.Decimal128).String())
 		if errD2 != nil {
 			t.Errorf("TestBSON failed map marshalling for case %v because of parse error - %v", tests[i], errD2)
 		}
